@@ -15,9 +15,9 @@ class Station
   end
 
   def trains_by_type
-    trains_by_type = Hash.new(0)
-    @trains.each { |x| trains_by_type[x.type] += 1 }
-    trains_by_type
+    result_hash = Hash.new(0)
+    trains.each { |train| result_hash[train.type] += 1 }
+    result_hash
   end
 end
 
@@ -29,11 +29,11 @@ class Route
   end
 
   def first_station
-    @stations[0]
+    stations.first
   end
 
   def last_station
-    @stations[-1]
+    stations.last
   end
 
   def add_station(station)
@@ -41,21 +41,21 @@ class Route
   end
 
   def del_station(station)
-    @stations.delete(station) if (station != @stations[0]) && (station != @stations[-1])
+    @stations.delete(station) unless [first_station, last_station].include?(station)
   end
 
   def stations_list
-    @stations.each { |x| puts x.name }
+    stations.each { |x| puts x.name }
   end
 end
 
 class Train
-  attr_reader :number, :type, :cars_count, :speed, :route, :station
+  attr_reader :number, :type, :railcars_count, :speed, :route, :station
 
-  def initialize(number, type, cars_count)
+  def initialize(number, type, railcars_count)
     @number = number
     @type = type
-    @cars_count = cars_count
+    @railcars_count = railcars_count
     @speed = 0
     @route = nil
     @station = nil
@@ -69,12 +69,12 @@ class Train
     @speed = 0
   end
 
-  def attach_car
-    @cars_count += 1 if @speed == 0
+  def attach_railcar
+    @railcars_count += 1 if speed.zero?
   end
 
-  def remove_car
-    @cars_count -= 1 if (@speed == 0) && (cars_count > 0)
+  def remove_railcar
+    @railcars_count -= 1 if speed.zero? && railcars_count.positive?
   end
 
   def assign_route(route)
@@ -84,7 +84,7 @@ class Train
   end
 
   def goto_next_station
-    if @station
+    if station
       @station.depart(self)
       @station = next_station
       @station.arrive(self)
@@ -92,7 +92,7 @@ class Train
   end
 
   def goto_prev_station
-    if @station
+    if station
       @station.depart(self)
       @station = prev_station
       @station.arrive(self)
@@ -100,10 +100,10 @@ class Train
   end
 
   def prev_station
-    @route.stations[@route.stations.find_index(@station) - 1] if @route
+    @route.stations[@route.stations.find_index(@station) - 1] if route
   end
 
   def next_station
-    @route.stations[@route.stations.find_index(@station) + 1] if @route
+    @route.stations[@route.stations.find_index(@station) + 1] if route
   end
 end
